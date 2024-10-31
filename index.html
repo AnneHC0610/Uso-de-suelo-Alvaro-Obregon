@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/AlcaldaO_1.js"></script>
+        <script src="data/Tipodesuelo_2.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[19.29927583122048,-99.31700661824657],[19.410862577741828,-99.08682518689493]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_AlcaldaO_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">osm_id</th>\
+                        <td class="visible-with-data" id="osm_id">' + (feature.properties['osm_id'] !== null ? autolinker.link(feature.properties['osm_id'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">class</th>\
+                        <td class="visible-with-data" id="class">' + (feature.properties['class'] !== null ? autolinker.link(feature.properties['class'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">type</th>\
+                        <td class="visible-with-data" id="type">' + (feature.properties['type'] !== null ? autolinker.link(feature.properties['type'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td>' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">address</th>\
+                        <td class="visible-with-data" id="address">' + (feature.properties['address'] !== null ? autolinker.link(feature.properties['address'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">extratags</th>\
+                        <td class="visible-with-data" id="extratags">' + (feature.properties['extratags'] !== null ? autolinker.link(feature.properties['extratags'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AlcaldaO_1_0() {
+            return {
+                pane: 'pane_AlcaldaO_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(196,60,57,0.20784313725490197)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_AlcaldaO_1');
+        map.getPane('pane_AlcaldaO_1').style.zIndex = 401;
+        map.getPane('pane_AlcaldaO_1').style['mix-blend-mode'] = 'normal';
+        var layer_AlcaldaO_1 = new L.geoJson(json_AlcaldaO_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AlcaldaO_1',
+            layerName: 'layer_AlcaldaO_1',
+            pane: 'pane_AlcaldaO_1',
+            onEachFeature: pop_AlcaldaO_1,
+            style: style_AlcaldaO_1_0,
+        });
+        bounds_group.addLayer(layer_AlcaldaO_1);
+        map.addLayer(layer_AlcaldaO_1);
+        function pop_Tipodesuelo_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">alcaldia</th>\
+                        <td>' + (feature.properties['alcaldia'] !== null ? autolinker.link(feature.properties['alcaldia'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">calle</th>\
+                        <td>' + (feature.properties['calle'] !== null ? autolinker.link(feature.properties['calle'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">no_externo</th>\
+                        <td>' + (feature.properties['no_externo'] !== null ? autolinker.link(feature.properties['no_externo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">colonia</th>\
+                        <td>' + (feature.properties['colonia'] !== null ? autolinker.link(feature.properties['colonia'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">codigo_pos</th>\
+                        <td>' + (feature.properties['codigo_pos'] !== null ? autolinker.link(feature.properties['codigo_pos'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">superficie</th>\
+                        <td>' + (feature.properties['superficie'] !== null ? autolinker.link(feature.properties['superficie'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">uso_descri</th>\
+                        <td>' + (feature.properties['uso_descri'] !== null ? autolinker.link(feature.properties['uso_descri'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">densidad_d</th>\
+                        <td>' + (feature.properties['densidad_d'] !== null ? autolinker.link(feature.properties['densidad_d'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">niveles</th>\
+                        <td>' + (feature.properties['niveles'] !== null ? autolinker.link(feature.properties['niveles'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">altura</th>\
+                        <td>' + (feature.properties['altura'] !== null ? autolinker.link(feature.properties['altura'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">area_libre</th>\
+                        <td>' + (feature.properties['area_libre'] !== null ? autolinker.link(feature.properties['area_libre'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">minimo_viv</th>\
+                        <td>' + (feature.properties['minimo_viv'] !== null ? autolinker.link(feature.properties['minimo_viv'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">liga_ciuda</th>\
+                        <td>' + (feature.properties['liga_ciuda'] !== null ? autolinker.link(feature.properties['liga_ciuda'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">longitud</th>\
+                        <td class="visible-with-data" id="longitud">' + (feature.properties['longitud'] !== null ? autolinker.link(feature.properties['longitud'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">latitud</th>\
+                        <td class="visible-with-data" id="latitud">' + (feature.properties['latitud'] !== null ? autolinker.link(feature.properties['latitud'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Tipodesuelo_2_0(feature) {
+            switch(String(feature.properties['uso_descri'])) {
+                case 'Area Verde':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(220,136,122,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Área Verde':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,211,109,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Áreas Verdes':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(187,220,87,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Centro Comericial':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(231,124,43,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Centro de Barrio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(97,215,170,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Corredor de Servicios Urbanos':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,120,226,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(239,175,91,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento de Servicios':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(27,30,205,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento Deportivo':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(226,224,135,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento Público y Privado':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,96,151,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento Rural':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,189,114,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Equipamiento Servicios':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(140,234,117,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Espacios Abiertos':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(216,21,203,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacion /Oficinas /Comercio /Servicios':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(39,217,173,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacion /Oficinas Corporativas':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(20,234,124,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacion /Oficinas Sin Servicios':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(139,78,237,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacion Unifamiliar':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(67,218,200,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(139,128,221,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional con Comercio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(182,57,213,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional con Comercio en Planta Baja':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(209,115,78,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Mixto':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(210,35,55,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Rural':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(174,73,229,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Rural con Comercio y Servicios':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,83,187,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Rural de Baja Densidad':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(209,95,93,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Servicios y Oficinas':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(97,230,105,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(111,225,54,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar y/o Comercio Especializado':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(93,231,141,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar y/o Plurifamiliar':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(137,216,68,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar y/o Plurifamiliar, Horizontal y Vertical':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(59,204,233,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar y/o Plurifamiliar, Oficinas y Comercio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,73,221,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar, Plurifamiliar y/o Comercio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(56,129,225,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar, Plurifamiliar, Oficinas y/o Comercio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(74,181,226,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Habitacional Unifamiliar, Plurifamiliar, y/o Oficinas Corporativas sin Comercio':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(218,44,87,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Industria':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(178,230,100,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Oficinas Corporativas':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(51,226,38,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Polígono de Actuación':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(31,147,236,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Preservación Ecológica':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,109,184,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Producción Rural Agroindustrial':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,88,205,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Proyecto Maestro de la Zona de Hueyatla':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(154,68,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Servicios, Oficinas y Servicios Turisticos':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(112,218,222,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sin Zonificación':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(113,133,234,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Usos Existentes':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(217,120,157,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Vivienda Plurifamiliar':
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(51,212,86,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Tipodesuelo_2',
+                radius: 4.0,
+                stroke: false,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(186,203,60,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Tipodesuelo_2');
+        map.getPane('pane_Tipodesuelo_2').style.zIndex = 402;
+        map.getPane('pane_Tipodesuelo_2').style['mix-blend-mode'] = 'normal';
+        var layer_Tipodesuelo_2 = new L.geoJson(json_Tipodesuelo_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Tipodesuelo_2',
+            layerName: 'layer_Tipodesuelo_2',
+            pane: 'pane_Tipodesuelo_2',
+            onEachFeature: pop_Tipodesuelo_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Tipodesuelo_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Tipodesuelo_2);
+        map.addLayer(layer_Tipodesuelo_2);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: 'Tipo de suelo<br /><table><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_AreaVerde0.png" /></td><td>Area Verde</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ÁreaVerde1.png" /></td><td>Área Verde</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ÁreasVerdes2.png" /></td><td>Áreas Verdes</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_CentroComericial3.png" /></td><td>Centro Comericial</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_CentrodeBarrio4.png" /></td><td>Centro de Barrio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_CorredordeServiciosUrbanos5.png" /></td><td>Corredor de Servicios Urbanos</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_Equipamiento6.png" /></td><td>Equipamiento</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EquipamientodeServicios7.png" /></td><td>Equipamiento de Servicios</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EquipamientoDeportivo8.png" /></td><td>Equipamiento Deportivo</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EquipamientoPúblicoyPrivado9.png" /></td><td>Equipamiento Público y Privado</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EquipamientoRural10.png" /></td><td>Equipamiento Rural</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EquipamientoServicios11.png" /></td><td>Equipamiento Servicios</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_EspaciosAbiertos12.png" /></td><td>Espacios Abiertos</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionOficinasComercioServicios13.png" /></td><td>Habitacion /Oficinas /Comercio /Servicios</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionOficinasCorporativas14.png" /></td><td>Habitacion /Oficinas Corporativas</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionOficinasSinServicios15.png" /></td><td>Habitacion /Oficinas Sin Servicios</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionUnifamiliar16.png" /></td><td>Habitacion Unifamiliar</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_Habitacional17.png" /></td><td>Habitacional</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalconComercio18.png" /></td><td>Habitacional con Comercio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalconComercioenPlantaBaja19.png" /></td><td>Habitacional con Comercio en Planta Baja</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalMixto20.png" /></td><td>Habitacional Mixto</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalRural21.png" /></td><td>Habitacional Rural</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalRuralconComercioyServicios22.png" /></td><td>Habitacional Rural con Comercio y Servicios</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalRuraldeBajaDensidad23.png" /></td><td>Habitacional Rural de Baja Densidad</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalServiciosyOficinas24.png" /></td><td>Habitacional Servicios y Oficinas</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliar25.png" /></td><td>Habitacional Unifamiliar</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliaryoComercioEspecializado26.png" /></td><td>Habitacional Unifamiliar y/o Comercio Especializado</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliaryoPlurifamiliar27.png" /></td><td>Habitacional Unifamiliar y/o Plurifamiliar</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliaryoPlurifamiliarHorizontalyVertical28.png" /></td><td>Habitacional Unifamiliar y/o Plurifamiliar, Horizontal y Vertical</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliaryoPlurifamiliarOficinasyComercio29.png" /></td><td>Habitacional Unifamiliar y/o Plurifamiliar, Oficinas y Comercio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliarPlurifamiliaryoComercio30.png" /></td><td>Habitacional Unifamiliar, Plurifamiliar y/o Comercio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliarPlurifamiliarOficinasyoComercio31.png" /></td><td>Habitacional Unifamiliar, Plurifamiliar, Oficinas y/o Comercio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_HabitacionalUnifamiliarPlurifamiliaryoOficinasCorporativassinComercio32.png" /></td><td>Habitacional Unifamiliar, Plurifamiliar, y/o Oficinas Corporativas sin Comercio</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_Industria33.png" /></td><td>Industria</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_OficinasCorporativas34.png" /></td><td>Oficinas Corporativas</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_PolígonodeActuación35.png" /></td><td>Polígono de Actuación</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_PreservaciónEcológica36.png" /></td><td>Preservación Ecológica</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ProducciónRuralAgroindustrial37.png" /></td><td>Producción Rural Agroindustrial</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ProyectoMaestrodelaZonadeHueyatla38.png" /></td><td>Proyecto Maestro de la Zona de Hueyatla</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ServiciosOficinasyServiciosTuristicos39.png" /></td><td>Servicios, Oficinas y Servicios Turisticos</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_SinZonificación40.png" /></td><td>Sin Zonificación</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_UsosExistentes41.png" /></td><td>Usos Existentes</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_ViviendaPlurifamiliar42.png" /></td><td>Vivienda Plurifamiliar</td></tr><tr><td style="text-align: center;"><img src="legend/Tipodesuelo_2_43.png" /></td><td></td></tr></table>', layer: layer_Tipodesuelo_2},
+            {label: '<img src="legend/AlcaldaO_1.png" /> Alcaldía ÁO', layer: layer_AlcaldaO_1},
+            {label: "OSM Standard", layer: layer_OSMStandard_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: layer_Tipodesuelo_2,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'uso_descri'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        </script>
+    </body>
+</html>
